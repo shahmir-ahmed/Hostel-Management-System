@@ -65,7 +65,7 @@ class Allotment{
             Statement stmt = con.createStatement();
             
             // counting number of rows in table to initialize 2d array
-            ResultSet rs1 = stmt.executeQuery("SELECT COUNT(allotment_id) AS total_allotments FROM allotments");
+            ResultSet rs1 = stmt.executeQuery("SELECT COUNT(allotment_id) AS total_allotments FROM allotments WHERE allotment_status='living'");
             
             rs1.next();
             
@@ -78,7 +78,7 @@ class Allotment{
             allotments = new String[rows][noOfColumns];
             
             // retrieve all the allotments with student and room details from database
-            ResultSet rs2 = stmt.executeQuery("SELECT s.student_name, s.student_reg_no, r.room_no, r.room_students, a.allotment_date FROM students s, rooms r, allotments a WHERE a.allotment_student_id = s.student_id AND a.allotment_room_id=r.room_id ORDER BY a.allotment_date DESC");
+            ResultSet rs2 = stmt.executeQuery("SELECT s.student_name, s.student_reg_no, r.room_no, r.room_students, a.allotment_date FROM students s, rooms r, allotments a WHERE  a.allotment_status='living' AND a.allotment_student_id = s.student_id AND a.allotment_room_id = r.room_id ORDER BY a.allotment_date DESC");
             
             int i=0; // for row
             int j=0;// for column
@@ -121,7 +121,7 @@ class Allotment{
             e.printStackTrace();
         }
         
-            JFrame frame = new JFrame("All Allotments");
+            JFrame frame = new JFrame("All Active Allotments");
         
         // setting table
             JTable jt = new JTable(allotments, columns);

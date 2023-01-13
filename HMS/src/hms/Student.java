@@ -815,7 +815,8 @@ class Student extends JFrame implements ActionListener{
                     
             Statement stmt = con.createStatement();
             
-            ResultSet rs = stmt.executeQuery("SELECT student_name from students WHERE student_reg_no='"+regNo+"'");
+            // checking only that student to update who is living
+            ResultSet rs = stmt.executeQuery("SELECT s.student_name from students s, allotments a WHERE s.student_reg_no='"+regNo+"' AND a.allotment_status = 'living' AND s.student_id = a.allotment_student_id");
             
             // record is present 
             if (rs.isBeforeFirst()) {   
@@ -861,7 +862,6 @@ class Student extends JFrame implements ActionListener{
             String roomNo = (String) rooms.getSelectedItem();
             
             String alloStatus = (String) status.getSelectedItem();
-//            System.out.println("HERE");
             
             
             // executing queries
@@ -881,11 +881,11 @@ class Student extends JFrame implements ActionListener{
                 
                 // updating student record
                 String query = "UPDATE students SET student_name = '"+name+"', student_f_name = '"+fName+"', student_reg_no = '"+stdRegNo+"', student_class = '"+stdClass+"', student_contact_no = '"+contact+"' WHERE student_id  = '"+stdId+"'";
-//                System.out.println("HERE");
+
                 stmt.executeUpdate(query);
 
                 
-                // also searching the room id of the room number to update room id in allotment table
+                // also searching the room id of the room number to update student allotment room id in allotment table
                 ResultSet rs1 = stmt.executeQuery("SELECT room_id FROM rooms WHERE room_no = '"+roomNo+"'");
                 
                 rs1.next(); // moving pointer
@@ -896,7 +896,7 @@ class Student extends JFrame implements ActionListener{
                 String query1 = "SELECT * FROM allotments WHERE allotment_room_id = "+roomId+" AND allotment_student_id = "+stdId;
                 
                 ResultSet rs2 = stmt.executeQuery(query1);
-                
+
                 // checking if student allotment status changed
                 
                 // if status is set to living then check if selected room is changed from current or not
@@ -925,7 +925,7 @@ class Student extends JFrame implements ActionListener{
                 // if status is set to left
                 else{
                     
-                    TimeZone tz = TimeZone.getTimeZone("UTC");
+                    TimeZone tz = TimeZone.getTimeZone("Asia/Karachi");
                     DateFormat df = new SimpleDateFormat("yyyy-MM-dd"); // Quoted "Z" to indicate UTC, no timezone offset
                     df.setTimeZone(tz);
                     String nowAsISO = df.format(new Date());
@@ -934,6 +934,16 @@ class Student extends JFrame implements ActionListener{
                     
                     stmt.executeUpdate("UPDATE allotments SET allotment_status = '"+alloStatus+"', allotment_left_date ='"+nowAsISO +"' WHERE allotment_student_id = "+stdId);
                     
+                    // getting currently allocated room to student
+                    ResultSet rs3 = stmt.executeQuery("SELECT allotment_room_id FROM allotments WHERE allotment_student_id = "+stdId);
+                    
+                    rs3.next();//moving pointer
+                    
+                    // getting studnet current room id if student status is set to leaved and to be used there
+                    int stdRoomId = rs3.getInt("allotment_room_id");
+                    
+                    // reducing the number of students from the left student's current room
+                    stmt.executeUpdate("UPDATE rooms SET room_students = room_students-1 WHERE room_id = "+stdRoomId);
                 }
                 
                 

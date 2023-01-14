@@ -247,8 +247,10 @@ class Student extends JFrame implements ActionListener{
                     
             Statement stmt = con.createStatement();
             
-            // check if student with this registration number already exists or not
-            ResultSet rs = stmt.executeQuery("SELECT student_reg_no from students where student_reg_no='"+stdRegNo+"'");
+            // check if student with this registration number already exists or not who is currently living beacuse left student re allotment can be done again
+            ResultSet rs = stmt.executeQuery("SELECT s.student_reg_no from students s, allotments a where s.student_reg_no='"+stdRegNo+"' AND a.allotment_student_id = s.student_id AND a.allotment_status='living'");
+//            ResultSet rs = stmt.executeQuery("SELECT student_reg_no from students where student_reg_no='"+stdRegNo+"'");
+            
             
             // if student not exists
             if(!rs.isBeforeFirst()){
@@ -873,7 +875,7 @@ class Student extends JFrame implements ActionListener{
                 Statement stmt = con.createStatement();
                 
                 // searchin student_id, // searching the student id to update room number in allotment table
-                ResultSet rs0 = stmt.executeQuery("SELECT student_id FROM students WHERE student_reg_no = '"+regNo+"'");
+                ResultSet rs0 = stmt.executeQuery("SELECT s.student_id FROM students s, allotments a WHERE s.student_reg_no = '"+regNo+"' AND s.student_id = a.allotment_student_id AND a.allotment_status = 'living'");
                 
                 rs0.next(); //moving pointer
                 
@@ -884,7 +886,7 @@ class Student extends JFrame implements ActionListener{
 
                 stmt.executeUpdate(query);
 
-                
+                // rooms updation check
                 // also searching the room id of the room number to update student allotment room id in allotment table
                 ResultSet rs1 = stmt.executeQuery("SELECT room_id FROM rooms WHERE room_no = '"+roomNo+"'");
                 
@@ -897,9 +899,9 @@ class Student extends JFrame implements ActionListener{
                 
                 ResultSet rs2 = stmt.executeQuery(query1);
 
-                // checking if student allotment status changed
+                // checking if student allotment status selected is changed
                 
-                // if status is set to living then check if selected room is changed from current or not
+                // if status is set to living then check if selected room is changed from current allocated room or not
                 if("living".equals((String)status.getSelectedItem())){
                     
                     // if selected room is currently allocated
@@ -909,7 +911,7 @@ class Student extends JFrame implements ActionListener{
                     // if different room selected
                     else{
                         // decrement current room count
-                        // getting room id from allotments table using studnet id 
+                        // getting room id of currently allocated room to student from allotments table using studnet id 
                         stmt.executeUpdate("UPDATE rooms SET room_students = room_students-1 WHERE room_id = (SELECT allotment_room_id FROM allotments WHERE allotment_student_id = "+stdId+")");
 
                         // increment new room count
@@ -944,6 +946,8 @@ class Student extends JFrame implements ActionListener{
                     
                     // reducing the number of students from the left student's current room
                     stmt.executeUpdate("UPDATE rooms SET room_students = room_students-1 WHERE room_id = "+stdRoomId);
+                    
+                    JOptionPane.showMessageDialog(null, "Allotment ended!");
                 }
                 
                 

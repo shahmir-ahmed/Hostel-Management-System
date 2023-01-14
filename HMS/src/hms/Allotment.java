@@ -26,6 +26,7 @@ class Allotment{
     
     String allotments[][];
     String columns[]= {"S#", "Name", "Reg No.", "Room No.", "Room mates", "Allotment Date"};
+    String columns1[]= {"S#", "Name", "Father Name", "Past Room No.", "Allotment Date", "Leaving Date"};
     
     ImageIcon icon = new ImageIcon("C:\\Users\\HP\\Pictures\\Saved Pictures\\icon-hms.png");
 
@@ -55,7 +56,7 @@ class Allotment{
         }
     }
     
-    public void viewAllotments(){ // view all allotments in hostel
+    public void viewActiveAllotments(){ // view all allotments in hostel
         // show a frame with table of all alotments
         try{
             Class.forName("com.mysql.jdbc.Driver");
@@ -147,6 +148,90 @@ class Allotment{
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
     
+    // table of all inactive allotments that is past allotments of studnet that left
+    public void viewInActiveAllotments(){
+         // show a frame with table of all inactive alotments
+        try{
+            Class.forName("com.mysql.jdbc.Driver");
+                   
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hostel_management_system", "root", "");
+                    
+            Statement stmt = con.createStatement();
+            
+            // counting number of rows in table to initialize 2d array
+            ResultSet rs1 = stmt.executeQuery("SELECT COUNT(allotment_id) AS total_allotments FROM allotments WHERE allotment_status='left'");
+            
+            rs1.next();
+            
+            String r = rs1.getString("total_allotments");
+            
+            int noOfColumns = columns.length; // table columns count
+            
+            int rows = Integer.parseInt(r);
+            
+            allotments = new String[rows][noOfColumns];
+            
+            // retrieve all the allotments with student and room details from database
+            ResultSet rs2 = stmt.executeQuery("SELECT s.student_name, s.student_f_name, r.room_no, a.allotment_date, a.allotment_left_date FROM students s, rooms r, allotments a WHERE  a.allotment_status='left' AND a.allotment_student_id = s.student_id AND a.allotment_room_id = r.room_id ORDER BY a.allotment_date DESC");
+            
+            int i=0; // for row
+            int j=0;// for column
+
+            int s = 1; // serial number
+            while(rs2.next()){
+            
+                // taking and setting data
+                
+                allotments[i][j] = String.valueOf(s++);
+                j++;
+                allotments[i][j] = rs2.getString("student_name");
+                j++;
+                allotments[i][j] = rs2.getString("student_f_name");
+                j++;
+                allotments[i][j] = rs2.getString("room_no");
+                j++;
+                allotments[i][j] = rs2.getString("allotment_date");
+                j++;
+                allotments[i][j] = rs2.getString("allotment_left_date");
+                
+                  j = 0; // reset column
+                  i++;// goto next row
+                
+            }
+            
+            con.close();
+            
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        
+            JFrame frame = new JFrame("All In-Active Allotments");
+        
+            // setting table
+            JTable jt = new JTable(allotments, columns1);
+
+            jt.setFillsViewportHeight(true);
+
+            jt.setFont(new Font("Sans Serif", Font.PLAIN, 18));
+
+            JScrollPane sp = new JScrollPane(jt);   
+
+            sp.setBounds(50, 50, 900, 650);
+            
+            frame.add(sp);
+            
+            // frame configs
+            frame.setSize(1000,800);
+            frame.setLayout(null);
+            frame.setResizable(false);
+            frame.setVisible(true);
+            frame.setLocationRelativeTo(null);
+            frame.getContentPane().setBackground(new Color(252, 219, 3));
+            frame.setIconImage(icon.getImage());
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    }
+    
     // called when student room is upadted
     public void updateAllotment(int stdId, int roomId){
         try{
@@ -159,6 +244,7 @@ class Allotment{
             stmt.executeUpdate("UPDATE allotments SET allotment_room_id = "+roomId+" WHERE allotment_student_id = "+stdId);
             
             JOptionPane.showMessageDialog(null, "New room allocated to student!");
+            
         }
         catch(Exception e){
             e.printStackTrace();

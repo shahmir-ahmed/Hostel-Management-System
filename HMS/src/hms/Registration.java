@@ -327,18 +327,16 @@ public class Registration extends JFrame implements ActionListener{
 //                    String str = sb.toString();
                     
                 // validating name field for special characters
-                Pattern digit = Pattern.compile("[0-9]");
-                Pattern special = Pattern.compile ("[!@#$%^&*()-_/+=;:\"\'<>/~`,.|<>?{}\\[\\]~-]");
-                
-                Matcher hasDigit = digit.matcher(name);
-                Matcher hasSpecial = special.matcher(name);
+                Pattern p = Pattern.compile("[^a-z0-9 ]", Pattern.CASE_INSENSITIVE);
+                Matcher m = p.matcher(name);
+                boolean b = m.find();
                 
                 // if any field is empty
                 if(name.isEmpty() || email.isEmpty() || password.isEmpty() || cpassword.isEmpty() || username.isEmpty()){
                     JOptionPane.showMessageDialog(null, "Please fill all the fields!");  
                 }
                // if name contains numbers or special characters or both
-                else if(hasDigit.find() || hasSpecial.find()){
+                else if(b){
                        JOptionPane.showMessageDialog(null, "Name should only have characters!");
                 }
                 // if both passwords are not same

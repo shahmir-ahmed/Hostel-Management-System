@@ -21,6 +21,8 @@ import java.util.Date;
 import java.util.TimeZone;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
         
 /**
  *
@@ -84,7 +86,7 @@ class Student extends JFrame implements ActionListener{
         l2.setFont(new Font("Sans Serif", Font.BOLD, 19));
         
         l3 = new JLabel("Registration No.");
-        l3.setBounds(140, 380, 200, 40);
+        l3.setBounds(140, 377, 200, 40);
         l3.setFont(new Font("Sans Serif", Font.BOLD, 19));
         
         l4 = new JLabel("Class");
@@ -448,7 +450,7 @@ class Student extends JFrame implements ActionListener{
         l5.setBounds(140, 625, 200, 20);
         l5.setFont(new Font("Sans Serif", Font.BOLD, 19));
         
-            l5_1 = new JLabel("Contact Number Format: 03xxxxxxxxx");
+            l5_1 = new JLabel("Contact Number Format: 03123456789");
             l5_1.setBounds(380, 655, 300, 20);
             l5_1.setFont(new Font("Sans Serif", Font.ITALIC, 16));
         
@@ -1005,16 +1007,25 @@ class Student extends JFrame implements ActionListener{
 
                 Statement stmt = con.createStatement();
                 
-                // decrementing room count of studnet room before deleteing student
-                stmt.executeUpdate("UPDATE rooms SET room_students = room_students - 1 WHERE room_id = (SELECT allotment_room_id FROM allotments WHERE allotment_student_id = (SELECT student_id FROM students WHERE student_reg_no = '"+regNo+"'))");
+                // decrementing room count of studnet room before deleteing student using subquery
+                stmt.executeUpdate("UPDATE rooms SET room_students = room_students - 1 WHERE room_id = (SELECT allotment_room_id FROM allotments WHERE allotment_student_id = (SELECT student_id FROM students WHERE student_reg_no = '"+regNo+"') AND allotment_status='living')");
+                
+                // selecting student id against the reg no. who is currently living
+                ResultSet rs = stmt.executeQuery("SELECT s.student_id FROM students s, allotments a WHERE s.student_reg_no = '"+regNo+"' AND a.allotment_status = 'living' AND a.allotment_student_id = s.student_id");
+                
+                rs.next();// moving pointer
+                
+                int stdId = rs.getInt("student_id"); // getting student id
                 
                 // delete student
-                String query = "DELETE FROM students WHERE student_reg_no = '"+regNo+"'";
+//                String query = "DELETE FROM students, allotments WHERE students.student_reg_no = '"+regNo+"' AND allotments.allotment_status = 'living' AND allotments.allotment_student_id = students.student_id";
+                String query = "DELETE FROM students WHERE student_id = "+stdId;
                 
                 stmt.executeUpdate(query);
                 
                 con.close(); // closing connection
-                // 
+                
+                // reset fields
                 tf1.setText("");
 
                 tf2.setText("");
@@ -1047,8 +1058,17 @@ class Student extends JFrame implements ActionListener{
     
     @Override
     public void actionPerformed(ActionEvent e){
+        
         if(e.getSource()==save){
+            
             String name = tf1.getText().trim();
+            
+            // validating name field for special characters
+            Pattern digit = Pattern.compile("[0-9]");
+            Pattern special = Pattern.compile ("[!@#$%^&*()-_/+=;:\"\'<>/~`,.|<>?{}\\[\\]~-]");
+                
+            Matcher hasDigit = digit.matcher(name);
+            Matcher hasSpecial = special.matcher(name);
             
             String fName = tf2.getText().trim();
             
@@ -1061,9 +1081,13 @@ class Student extends JFrame implements ActionListener{
             
             String roomNo = (String) rooms.getSelectedItem();
             
-            // validating
+            // validating empty fields
             if(name.isEmpty() || fName.isEmpty() || regNo.isEmpty() || stdClass.isEmpty() || contact.isEmpty() || "----Please select room----".equals(roomNo)){
                 JOptionPane.showMessageDialog(null, "Please fill out all the fields!");             
+            }
+            // if name contains numbers or special characters or both
+            else if(hasDigit.find() || hasSpecial.find()){
+                JOptionPane.showMessageDialog(null, "Name should only have characters!");
             }
             // checking contact number length
             else if(contactLength>11){
@@ -1103,7 +1127,7 @@ class Student extends JFrame implements ActionListener{
             
             // validating
             if(regNo.isEmpty()){
-                JOptionPane.showMessageDialog(null, "Please enter contact number!");
+                JOptionPane.showMessageDialog(null, "Please fill the search field!");
             }
             else{
                 searchStudent();
@@ -1116,7 +1140,18 @@ class Student extends JFrame implements ActionListener{
             
             String name = tf1.getText().trim();
             
+            // validating name field for special characters
+            Pattern digit = Pattern.compile("[0-9]");
+            Pattern special = Pattern.compile ("[!@#$%^&*()-_/+=;:\"\'<>/~`,.|<>?{}\\[\\]~-]");
+                
+            Matcher hasDigit = digit.matcher(name);
+            Matcher hasSpecial = special.matcher(name);
+            
             String fName = tf2.getText().trim();
+            
+            // validating name field for special characters        
+            Matcher hasDigit1 = digit.matcher(fName);
+            Matcher hasSpecial1 = special.matcher(fName);
             
             String stdRegNo = tf3.getText().trim();
             
@@ -1130,7 +1165,11 @@ class Student extends JFrame implements ActionListener{
             // validating
             if(regNo.isEmpty()){
                 JOptionPane.showMessageDialog(null, "Please fill the search field!");
-            }            
+            }
+            // if student name and father name contains numbers or special characters or both
+            else if(hasDigit.find() || hasSpecial.find() || hasDigit1.find() || hasSpecial1.find()){
+                JOptionPane.showMessageDialog(null, "Name should only have characters!");
+            }
             // validating
             else if(name.isEmpty() || fName.isEmpty() || stdRegNo.isEmpty() || stdClass.isEmpty() || contact.isEmpty() || "------Select new room from below------".equals(roomNo)){
                 JOptionPane.showMessageDialog(null, "Please fill out all the fields!");             

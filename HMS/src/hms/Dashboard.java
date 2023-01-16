@@ -17,7 +17,7 @@ import java.awt.event.*;
 class Dashboard extends JFrame implements ActionListener{
     
     JLabel ml, ban;
-    JButton b1, b2, b3, b4, b5, logout, roomsReport, allotmentsReport, leftStudents, livingStudents;
+    JButton b1, b2, b3, b4, b5, logout, roomsReport, allotmentsReport, leftStudents, livingStudents, inActiveAllotments, viewRoomDetails;
     ImageIcon icon = new ImageIcon("C:\\Users\\HP\\Pictures\\Saved Pictures\\icon-hms.png");
     ImageIcon logoutIcon = new ImageIcon("C:\\Users\\HP\\Pictures\\Saved Pictures\\logout.png");
     ImageIcon banner = new ImageIcon("hostel_images_&_icon\\banner.png");
@@ -26,8 +26,10 @@ class Dashboard extends JFrame implements ActionListener{
     ImageIcon manageStudentIcon = new ImageIcon("hostel_images_&_icon\\Update & Delete Student.png");
     ImageIcon studentIcon = new ImageIcon("hostel_images_&_icon\\all student living.png");
     ImageIcon allAllotmentIcon = new ImageIcon("hostel_images_&_icon\\All Allotments.png");
-    ImageIcon reportIcon = new ImageIcon("hostel_images_&_icon\\report.png");
+//    ImageIcon reportIcon = new ImageIcon("hostel_images_&_icon\\report.png");
     ImageIcon leftStudentsIcon = new ImageIcon("hostel_images_&_icon\\leaved students.png");
+    ImageIcon inActiveIcon = new ImageIcon("hostel_images_&_icon\\inactive.png");
+    ImageIcon activeIcon = new ImageIcon("hostel_images_&_icon\\active.png");
     
 //    Allotment allotment = new Allotment(); // allotment class object
     
@@ -82,30 +84,43 @@ class Dashboard extends JFrame implements ActionListener{
         b4.setBounds(755, 110, 180,50);
         b4.addActionListener(this);
         
-//        b5 = new JButton("All Student Living");
-        b5 = new JButton(allAllotmentIcon);
-        b5.setText(" View All Allotments");
-        b5.setFont(new Font("Sans Serif", Font.PLAIN, 18));
-        b5.setBounds(970, 110, 240,50);
-        b5.addActionListener(this);
-        
         livingStudents = new JButton(allAllotmentIcon);
         livingStudents.setText(" All Students Living");
         livingStudents.setFont(new Font("Sans Serif", Font.PLAIN, 18));
-        livingStudents.setBounds(200, 190, 230, 50);
+        livingStudents.setBounds(970, 110, 230, 50);
         livingStudents.addActionListener(this);
+        
+        viewRoomDetails = new JButton(allAllotmentIcon);
+        viewRoomDetails.setText(" View Room Details");
+        viewRoomDetails.setFont(new Font("Sans Serif", Font.PLAIN, 18));
+        viewRoomDetails.setBounds(100, 190, 250, 50);
+        viewRoomDetails.addActionListener(this);
+        
+//        b5 = new JButton("All Student Living");
+        b5 = new JButton(activeIcon);
+        b5.setText(" All Active Allotments");
+        b5.setFont(new Font("Sans Serif", Font.PLAIN, 18));
+        b5.setBounds(390, 190, 240,50);
+        b5.addActionListener(this);
+        
+        inActiveAllotments = new JButton(inActiveIcon);
+        inActiveAllotments.setText(" All Inactive Allotments");
+        inActiveAllotments.setFont(new Font("Sans Serif", Font.PLAIN, 18));
+        inActiveAllotments.setBounds(660, 190, 250, 50);
+        inActiveAllotments.addActionListener(this);
         
         leftStudents = new JButton(leftStudentsIcon);
         leftStudents.setText(" All Students Left");
         leftStudents.setFont(new Font("Sans Serif", Font.PLAIN, 18));
-        leftStudents.setBounds(540, 190, 230, 50);
+        leftStudents.setBounds(940, 190, 230, 50);
         leftStudents.addActionListener(this);
         
-        allotmentsReport = new JButton(reportIcon);
-        allotmentsReport.setText(" Allotment Report");
-        allotmentsReport.setFont(new Font("Sans Serif", Font.PLAIN, 18));
-        allotmentsReport.setBounds(860, 190, 230, 50);
-        allotmentsReport.addActionListener(this);
+//        allotmentsReport = new JButton(reportIcon);
+//        allotmentsReport.setText(" Allotment Report");
+//        allotmentsReport.setFont(new Font("Sans Serif", Font.PLAIN, 18));
+//        allotmentsReport.setBounds(860, 190, 230, 50);
+//        allotmentsReport.addActionListener(this);
+        
         
         logout = new JButton(logoutIcon);
         logout.setBounds(1200, 27, 50, 50);
@@ -121,7 +136,9 @@ class Dashboard extends JFrame implements ActionListener{
         add(b5);
         add(livingStudents);
         add(leftStudents);
-        add(allotmentsReport);
+//        add(allotmentsReport);
+        add(inActiveAllotments);
+        add(viewRoomDetails);
         add(logout);
         
 //        setContentPane(new JPanel() {
@@ -140,6 +157,7 @@ class Dashboard extends JFrame implements ActionListener{
         setVisible(true);
         setLocationRelativeTo(null);
         getContentPane().setBackground(new Color(252, 219, 3));
+//        getContentPane().setBackground(new Color(136,141,245));
         setIconImage(icon.getImage());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
@@ -183,7 +201,8 @@ class Dashboard extends JFrame implements ActionListener{
         // Manage rooms
         if(e.getSource()==b1){
 //               JOptionPane.showMessageDialog(null, "Managing rooms frame");
-            new Room();
+            Room room = new Room();
+            room.ManageRooms();
         }
         // new allotment
         if(e.getSource()==b2){
@@ -225,7 +244,7 @@ class Dashboard extends JFrame implements ActionListener{
         if(e.getSource()==b5){
             // all allotments
             Allotment allotment = new Allotment();
-            allotment.viewAllotments();
+            allotment.viewActiveAllotments();
         }
         
         // view all studnets currently living
@@ -240,11 +259,23 @@ class Dashboard extends JFrame implements ActionListener{
             allotment.viewAllLeftStudents();
         }
         
+        // view all inactive allotments
+        if(e.getSource()==inActiveAllotments){
+            Allotment allotment = new Allotment();
+            allotment.viewInActiveAllotments();
+        }
+        
         // logout
         if(e.getSource()==logout){
             setVisible(false);
             JOptionPane.showMessageDialog(null, "Logged out successfully!");
             new Login();
+        }
+        
+        // view specific room students
+        if(e.getSource()==viewRoomDetails){
+            Room room = new Room();
+            room.searchRoomStudentsFrame();
         }
     }
 }

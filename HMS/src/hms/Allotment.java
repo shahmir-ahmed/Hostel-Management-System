@@ -24,9 +24,15 @@ import java.sql.SQLException;
 class Allotment{
 //    Student student = new Student();
     
-    String allotments[][];
-    String columns[]= {"S#", "Name", "Reg No.", "Room No.", "Room mates", "Allotment Date"};
-    String columns1[]= {"S#", "Name", "Father Name", "Past Room No.", "Allotment Date", "Leaving Date"};
+    String allotments[][];// allotments record array
+    
+    String columns[]= {"S#", "Name", "Reg No.", "Room No.", "Room mates", "Allotment Date"}; // active allotments
+    
+    String columns1[]= {"S#", "Name", "Contact No.", "Past Room No.", "Allotment Date", "Allotment Ending Date"}; // inactive allotments
+    
+    String columns2[]= {"S#", "Name", "Father Name", "Reg No.", "Class", "Contact No.", "Living Since"}; // living students
+    
+    String columns3[]= {"S#", "Name", "Father Name", "Reg No.", "Contact Number", "Leaving Date"}; // left students
     
     ImageIcon icon = new ImageIcon("C:\\Users\\HP\\Pictures\\Saved Pictures\\icon-hms.png");
 
@@ -50,6 +56,9 @@ class Allotment{
             stmt.executeUpdate(query);
             
             con.close();
+            
+            // Saving record in file
+//            File file = new File("Allotments Record.docx");
         }
         catch(Exception e){
             e.printStackTrace();
@@ -172,7 +181,7 @@ class Allotment{
             allotments = new String[rows][noOfColumns];
             
             // retrieve all the allotments with student and room details from database
-            ResultSet rs2 = stmt.executeQuery("SELECT s.student_name, s.student_f_name, r.room_no, a.allotment_date, a.allotment_left_date FROM students s, rooms r, allotments a WHERE  a.allotment_status='left' AND a.allotment_student_id = s.student_id AND a.allotment_room_id = r.room_id ORDER BY a.allotment_date DESC");
+            ResultSet rs2 = stmt.executeQuery("SELECT s.student_name, s.student_contact_no, r.room_no, a.allotment_date, a.allotment_left_date FROM students s, rooms r, allotments a WHERE  a.allotment_status='left' AND a.allotment_student_id = s.student_id AND a.allotment_room_id = r.room_id ORDER BY a.allotment_date DESC");
             
             int i=0; // for row
             int j=0;// for column
@@ -186,7 +195,7 @@ class Allotment{
                 j++;
                 allotments[i][j] = rs2.getString("student_name");
                 j++;
-                allotments[i][j] = rs2.getString("student_f_name");
+                allotments[i][j] = rs2.getString("student_contact_no");
                 j++;
                 allotments[i][j] = rs2.getString("room_no");
                 j++;
@@ -274,14 +283,16 @@ class Allotment{
             
             String r = rs1.getString("total_allotments");
             
-            int noOfColumns = columns.length; // table columns count
+            int noOfColumns = columns2.length; // table columns count
             
             int rows = Integer.parseInt(r);
             
             allotments = new String[rows][noOfColumns];
             
             // retrieve all the allotments os living studnets with student and room details from database
-            ResultSet rs2 = stmt.executeQuery("SELECT s.student_name, s.student_reg_no, r.room_no, r.room_students, a.allotment_date FROM students s, rooms r, allotments a WHERE a.allotment_student_id = s.student_id AND a.allotment_room_id=r.room_id AND a.allotment_status = 'living' ORDER BY a.allotment_date DESC");
+//            ResultSet rs2 = stmt.executeQuery("SELECT s.student_name, s.student_reg_no, r.room_no, r.room_students, a.allotment_date FROM students s, rooms r, allotments a WHERE a.allotment_student_id = s.student_id AND a.allotment_room_id=r.room_id AND a.allotment_status = 'living' ORDER BY a.allotment_date DESC");
+            
+            ResultSet rs2 = stmt.executeQuery("SELECT s.student_name, s.student_f_name, s.student_reg_no, s.student_class, s.student_contact_no, a.allotment_date FROM students s, allotments a WHERE a.allotment_student_id = s.student_id AND a.allotment_status = 'living' ORDER BY a.allotment_date DESC");
             
             int i=0; // for row
             int j=0;// for column
@@ -295,21 +306,27 @@ class Allotment{
                 j++;
                 allotments[i][j] = rs2.getString("student_name");
                 j++;
+                allotments[i][j] = rs2.getString("student_f_name");
+                j++;
                 allotments[i][j] = rs2.getString("student_reg_no");
                 j++;
-                allotments[i][j] = rs2.getString("room_no");
+                allotments[i][j] = rs2.getString("student_class");
                 j++;
-                
-                // decrease room mates count beacuse exluding self
-                int roomMates = (Integer.parseInt(rs2.getString("room_students") ) - 1);
-                
-                // if decreasing goes less than 0 then set it to 0
-                if(roomMates<0){
-                   roomMates = 0; 
-                }
-                
-                allotments[i][j] = String.valueOf(roomMates);
+                allotments[i][j] = rs2.getString("student_contact_no");
                 j++;
+//                allotments[i][j] = rs2.getString("room_no");
+//                j++;
+//                
+//                // decrease room mates count beacuse exluding self
+//                int roomMates = (Integer.parseInt(rs2.getString("room_students") ) - 1);
+//                
+//                // if decreasing goes less than 0 then set it to 0
+//                if(roomMates<0){
+//                   roomMates = 0; 
+//                }
+//                
+//                allotments[i][j] = String.valueOf(roomMates);
+//                j++;
                 allotments[i][j] = rs2.getString("allotment_date");
                 
                   j = 0; // reset column
@@ -329,7 +346,7 @@ class Allotment{
             JFrame frame = new JFrame("All Living Students");
         
             // setting table
-            JTable jt = new JTable(allotments, columns);
+            JTable jt = new JTable(allotments, columns2);
 
             jt.setFillsViewportHeight(true);
 
@@ -371,14 +388,15 @@ class Allotment{
             
             String r = rs1.getString("total_allotments");
             
-            int noOfColumns = columns.length; // table columns count
+            int noOfColumns = columns3.length; // table columns count
             
             int rows = Integer.parseInt(r);
             
             allotments = new String[rows][noOfColumns];
             
             // retrieve all the allotments os living studnets with student and room details from database
-            ResultSet rs2 = stmt.executeQuery("SELECT s.student_name, s.student_reg_no, r.room_no, r.room_students, a.allotment_date, a.allotment_left_date FROM students s, rooms r, allotments a WHERE a.allotment_student_id = s.student_id AND a.allotment_room_id=r.room_id AND a.allotment_status = 'left' ORDER BY a.allotment_date DESC");
+//            ResultSet rs2 = stmt.executeQuery("SELECT s.student_name, s.student_f_name, s.student_reg_no, r.room_no, r.room_students, a.allotment_date, a.allotment_left_date FROM students s, rooms r, allotments a WHERE a.allotment_student_id = s.student_id AND a.allotment_room_id=r.room_id AND a.allotment_status = 'left' ORDER BY a.allotment_date DESC");
+            ResultSet rs2 = stmt.executeQuery("SELECT s.student_name, s.student_f_name, s.student_reg_no, s.student_contact_no, a.allotment_date, a.allotment_left_date FROM students s, allotments a WHERE a.allotment_student_id = s.student_id AND a.allotment_status = 'left' ORDER BY a.allotment_date DESC");
             
             int i=0; // for row
             int j=0;// for column
@@ -392,11 +410,15 @@ class Allotment{
                 j++;
                 allotments[i][j] = rs2.getString("student_name");
                 j++;
+                allotments[i][j] = rs2.getString("student_f_name");
+                j++;
+//                allotments[i][j] = rs2.getString("room_no");
+//                j++;
+//                allotments[i][j] = rs2.getString("allotment_date");
+//                j++
                 allotments[i][j] = rs2.getString("student_reg_no");
                 j++;
-                allotments[i][j] = rs2.getString("room_no");
-                j++;
-                allotments[i][j] = rs2.getString("allotment_date");
+                allotments[i][j] = rs2.getString("student_contact_no");
                 j++;
                 allotments[i][j] = rs2.getString("allotment_left_date");
                 
@@ -416,10 +438,10 @@ class Allotment{
         
             JFrame frame = new JFrame("All Left Students");
             
-            String columnsNew[] = {"S#", "Name", "Reg No.", "Room No.", "Allotment Date", "Allotment Ending Date"};
+//            String columnsNew[] = {"S#", "Name", "Reg No.", "Room No.", "Allotment Date", "Allotment Ending Date"};
         
             // setting table
-            JTable jt = new JTable(allotments, columnsNew);
+            JTable jt = new JTable(allotments, columns3);
 
             jt.setFillsViewportHeight(true);
 
